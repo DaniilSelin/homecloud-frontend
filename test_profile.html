@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Test Profile - HomeCloud</title>
+    <link rel="stylesheet" href="css/style.css?v=2.1">
+</head>
+<body>
+    <main class="container">
+        <div class="profile-header">
+            <h2>Test Profile</h2>
+            <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+        </div>
+        
+        <div class="profile-container">
+            <div class="profile-info">
+                <div class="profile-avatar">
+                    <div id="profile-avatar" class="avatar-circle"></div>
+                </div>
+                
+                <div class="profile-details">
+                    <!-- Basic Info Section -->
+                    <div class="info-section">
+                        <h3>Basic Information</h3>
+                        <div class="info-item">
+                            <label>Username:</label>
+                            <span id="display-username">Test User</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email:</label>
+                            <span id="display-email">test@example.com</span>
+                            <span id="email-verification-status" class="status-badge warning">Not Verified</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Role:</label>
+                            <span id="display-role">User</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Member since:</label>
+                            <span id="display-created">January 15, 2024, 10:30 AM</span>
+                        </div>
+                    </div>
+
+                    <!-- Account Status Section -->
+                    <div class="info-section">
+                        <h3>Account Status</h3>
+                        <div class="info-item">
+                            <label>Account Status:</label>
+                            <span id="display-status" class="status-badge success">Active</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Email Verified:</label>
+                            <span id="display-email-verified" class="status-badge warning">Not Verified</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Two-Factor Auth:</label>
+                            <span id="display-2fa" class="status-badge info">Disabled</span>
+                        </div>
+                        <div class="info-item" id="last-login-item">
+                            <label>Last Login:</label>
+                            <span id="display-last-login">January 20, 2024, 02:45 PM</span>
+                        </div>
+                    </div>
+
+                    <!-- Storage Section -->
+                    <div class="info-section">
+                        <h3>Storage</h3>
+                        <div class="info-item">
+                            <label>Storage Used:</label>
+                            <span id="display-storage-used">2.0 GB</span>
+                        </div>
+                        <div class="info-item">
+                            <label>Storage Quota:</label>
+                            <span id="display-storage-quota">10.0 GB</span>
+                        </div>
+                        <div class="storage-progress-container">
+                            <div class="storage-progress-bar">
+                                <div id="storage-progress-fill" class="storage-progress-fill" style="width: 20%;"></div>
+                            </div>
+                            <span id="storage-percentage" class="storage-percentage">20.0%</span>
+                        </div>
+                    </div>
+
+                    <!-- Security Section -->
+                    <div class="info-section" id="security-section" style="display: none;">
+                        <h3>Security</h3>
+                        <div class="info-item" id="failed-attempts-item" style="display: none;">
+                            <label>Failed Login Attempts:</label>
+                            <span id="display-failed-attempts">0</span>
+                        </div>
+                        <div class="info-item" id="locked-until-item" style="display: none;">
+                            <label>Account Locked Until:</label>
+                            <span id="display-locked-until" class="status-badge error">Not locked</span>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="profile-actions">
+                    <button id="edit-profile-btn" class="btn">Edit Profile</button>
+                    <button id="change-password-btn" class="btn btn-secondary">Change Password</button>
+                    <button id="resend-verification-btn" class="btn btn-secondary">Resend Verification Email</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Edit Profile Modal -->
+    <div id="edit-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Edit Profile</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="edit-profile-form">
+                    <div class="input-group">
+                        <label for="edit-username">Username:</label>
+                        <input type="text" id="edit-username" name="username" required>
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Save Changes</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <!-- Change Password Modal -->
+    <div id="password-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h3>Change Password</h3>
+                <span class="close">&times;</span>
+            </div>
+            <div class="modal-body">
+                <form id="change-password-form">
+                    <div class="input-group">
+                        <label for="current-password">Current Password:</label>
+                        <input type="password" id="current-password" name="old_password" required>
+                    </div>
+                    <div class="input-group">
+                        <label for="new-password">New Password:</label>
+                        <input type="password" id="new-password" name="new_password" required minlength="6">
+                    </div>
+                    <div class="input-group">
+                        <label for="confirm-password">Confirm New Password:</label>
+                        <input type="password" id="confirm-password" name="confirm_password" required minlength="6">
+                    </div>
+                    <div class="form-actions">
+                        <button type="submit" class="btn">Change Password</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-password">Cancel</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <script src="js/profile.js"></script>
+    <script src="js/transitions.js"></script>
+</body>
+</html> 
