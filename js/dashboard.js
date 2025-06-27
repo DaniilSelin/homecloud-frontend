@@ -21,11 +21,8 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="user-dropdown-item logout" id="logout-btn">Выйти</div>
         `;
         document.body.appendChild(userDropdown);
-        console.log('Dropdown создан:', userDropdown); // Проверка
+        console.log('Dropdown создан:', userDropdown);
     }
-    // Диагностика
-    console.log('hamburgerMenu:', hamburgerMenu);
-    console.log('userDropdown:', userDropdown);
 
     function positionDropdown() {
         const rect = hamburgerMenu.getBoundingClientRect();
@@ -44,12 +41,10 @@ document.addEventListener('DOMContentLoaded', () => {
     hamburgerMenu.addEventListener('click', (e) => {
         e.stopPropagation();
         
-        // Принудительное обновление позиции
         const rect = hamburgerMenu.getBoundingClientRect();
         userDropdown.style.top = `${rect.bottom + window.scrollY + 5}px`;
         userDropdown.style.left = `${rect.left + window.scrollX}px`;
         
-        // Переключение видимости
         userDropdown.classList.toggle('show');
     });
     document.addEventListener('click', (e) => {
@@ -57,7 +52,7 @@ document.addEventListener('DOMContentLoaded', () => {
             hideDropdown();
         }
     });
-    // Навигация
+    
     userDropdown.querySelector('#menu-me').onclick = () => { window.location.href = '/me'; };
     userDropdown.querySelector('#logout-btn').onclick = () => {
         localStorage.removeItem('token');
@@ -73,6 +68,7 @@ document.addEventListener('DOMContentLoaded', () => {
         ];
         renderFiles(demoFiles);
     }
+    
     function renderFiles(files) {
         if (!files || files.length === 0) {
             fileListContainer.innerHTML = `<div style="text-align: center; padding: 2rem; color: #666;">
@@ -83,29 +79,111 @@ document.addEventListener('DOMContentLoaded', () => {
         const fileItems = files.map(file => `
             <div class="file-item">
                 <div class="file-info">
-                    <span style="font-weight: 500;">${file.isFolder ? '📁 ' : ''}${file.name}</span>
-                    <span style="color: #666; font-size: 0.9rem;">${file.size || ''}</span>
-                    <span style="color: #999; font-size: 0.8rem;">${file.type || (file.isFolder ? 'Папка' : 'Файл')}</span>
+                    <span style="font-weight: 500;">${file.is_folder ? '📁 ' : ''}${file.name}</span>
+                    <span style="color: #666; font-size: 0.9rem;">${formatFileSize(file.size) || ''}</span>
+                    <span style="color: #999; font-size: 0.8rem;">${file.mime_type || (file.is_folder ? 'Папка' : 'Файл')}</span>
                 </div>
                 <div class="file-actions">
-                    ${file.isFolder ? '' : `<button class="btn btn-secondary" onclick="downloadFile('${file.id}')">Скачать</button>`}
+                    ${file.is_folder ? '' : `<button class="btn btn-secondary" onclick="downloadFile('${file.id}')">Скачать</button>`}
                     <button class="btn btn-secondary" onclick="deleteFile('${file.id}')">Удалить</button>
                 </div>
             </div>
         `).join('');
         fileListContainer.innerHTML = fileItems;
     }
+    
+    function formatFileSize(bytes) {
+        if (!bytes) return '';
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(1024));
+        return Math.round(bytes / Math.pow(1024, i) * 100) / 100 + ' ' + sizes[i];
+    }
+    
+    // Загрузка файлов
     uploadBtn.onclick = () => {
-        showNotification('Загрузка файлов будет реализована позже', 'info');
+        const input = document.createElement('input');
+        input.type = 'file';
+        input.multiple = true;
+        input.onchange = async (e) => {
+            const files = Array.from(e.target.files);
+            for (const file of files) {
+                await uploadFile(file);
+            }
+            fetchAndShowFiles(); // Обновляем список после загрузки
+        };
+        input.click();
     };
-    window.downloadFile = (fileId) => {
-        showNotification(`Скачать файл ${fileId} — функция будет реализована позже`, 'info');
-    };
-    window.deleteFile = (fileId) => {
-        if (confirm('Удалить файл?')) {
-            showNotification(`Удаление файла ${fileId} — функция будет реализована позже`, 'info');
+    
+    async function uploadFile(file) {
+        try {
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            const response = await fetch('/api/v1/upload', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`
+                },
+                body: formData
+            });
+            
+            if (response.ok) {
+                const result = await response.json();
+                showNotification(`Файл ${file.name} успешно загружен`, 'success');
+            } else {
+                const error = await response.text();
+                showNotification(`Ошибка загрузки ${file.name}: ${error}`, 'error');
+            }
+        } catch (error) {
+            showNotification(`Ошибка сети при загрузке ${file.name}`, 'error');
+        }
+    }
+    
+    window.downloadFile = async (fileId) => {
+        try {
+            const response = await fetch(`/api/v1/files/${fileId}/download`, {
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            
+            if (response.ok) {
+                const blob = await response.blob();
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'file'; // Имя файла будет получено из заголовков
+                document.body.appendChild(a);
+                a.click();
+                window.URL.revokeObjectURL(url);
+                document.body.removeChild(a);
+                showNotification('Файл скачивается', 'success');
+            } else {
+                showNotification('Ошибка скачивания файла', 'error');
+            }
+        } catch (error) {
+            showNotification('Ошибка сети при скачивании', 'error');
         }
     };
+    
+    window.deleteFile = async (fileId) => {
+        if (confirm('Удалить файл?')) {
+            try {
+                const response = await fetch(`/api/v1/files/${fileId}`, {
+                    method: 'DELETE',
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+                
+                if (response.ok) {
+                    showNotification('Файл удален', 'success');
+                    fetchAndShowFiles(); // Обновляем список
+                } else {
+                    showNotification('Ошибка удаления файла', 'error');
+                }
+            } catch (error) {
+                showNotification('Ошибка сети при удалении', 'error');
+            }
+        }
+    };
+    
     // Уведомления
     function showNotification(message, type = 'info') {
         const notification = document.createElement('div');
@@ -137,6 +215,7 @@ document.addEventListener('DOMContentLoaded', () => {
             }, 300);
         }, 4000);
     }
+    
     // Анимации для уведомлений
     const style = document.createElement('style');
     style.textContent = `
@@ -154,24 +233,13 @@ document.addEventListener('DOMContentLoaded', () => {
     // File actions (реальные данные)
     async function fetchAndShowFiles() {
         try {
-            const res = await fetch('/api/folders/browse', {
+            const res = await fetch('/api/v1/files', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
+            
             if (res.ok) {
                 const data = await res.json();
-                // data.files — обычные файлы, data.folders — папки
-                const files = (data.folders || []).map(f => ({
-                    ...f,
-                    type: 'Папка',
-                    size: '',
-                    isFolder: true
-                })).concat(
-                    (data.files || []).map(f => ({
-                        ...f,
-                        type: f.type || 'Файл',
-                        isFolder: false
-                    }))
-                );
+                const files = data.files || [];
                 renderFiles(files);
             } else if (res.status === 401) {
                 localStorage.removeItem('token');
@@ -181,6 +249,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 showDemoFiles();
             }
         } catch (error) {
+            console.error('Error fetching files:', error);
             showNotification('Ошибка сети при загрузке файлов', 'error');
             showDemoFiles();
         }

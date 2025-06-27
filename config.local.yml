@@ -1,0 +1,52 @@
+# Конфигурация для frontend сервиса
+server:
+  port: 3000
+  host: "0.0.0.0"
+
+# Настройки API сервисов
+api:
+  auth:
+    base_url: "http://auth:8080"
+    endpoints:
+      register: "/api/v1/auth/register"
+      login: "/api/v1/auth/login"
+      logout: "/api/v1/auth/logout"
+      profile: "/api/v1/auth/me"
+  
+  file_service:
+    base_url: "http://file-service:8082"
+    endpoints:
+      files: "/api/v1/files"
+      upload: "/api/v1/files/upload"
+      download: "/api/v1/files/download"
+
+# Настройки Nginx
+nginx:
+  port: 80
+  server_name: "localhost"
+  root: "/usr/share/nginx/html"
+  index: "index.html"
+  
+  # Настройки проксирования API запросов
+  proxy:
+    auth_service: "http://auth:8080"
+    file_service: "http://file-service:8082"
+
+# Настройки безопасности
+security:
+  cors:
+    allowed_origins: ["*"]
+    allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    allowed_headers: ["Content-Type", "Authorization"]
+  
+  headers:
+    x_frame_options: "DENY"
+    x_content_type_options: "nosniff"
+    x_xss_protection: "1; mode=block"
+    referrer_policy: "strict-origin-when-cross-origin"
+
+# Настройки кэширования
+cache:
+  static_files: "1y"
+  html_files: "1h"
+  api_responses: "5m" 
