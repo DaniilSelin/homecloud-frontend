@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard - HomeCloud</title>
+    <title>HomeCloud - Dashboard</title>
     <link rel="stylesheet" href="css/style.css?v=2.3">
 </head>
 <body>
@@ -22,12 +22,19 @@
             <a href="/dashboard.html" class="btn">Файлы</a>
             <a href="/me" class="btn btn-secondary">Профиль</a>
         </div>
-        <h2>Мои файлы</h2>
-        <div class="file-actions">
-            <button id="upload-btn" class="btn">Загрузить файл</button>
+        <div class="header-content">
+            <h2 id="current-folder-title">Мои файлы</h2>
+            <div class="header-actions">
+                <button id="create-file-btn" class="btn btn-primary">
+                    <span style="font-size: 20px;">+</span> Создать файл
+                </button>
+                <button id="upload-btn" class="btn btn-primary">
+                    ⬆️ Загрузить файлы
+                </button>
+            </div>
         </div>
         <div id="file-list" class="file-list-container">
-            <!-- File items will be injected here by JavaScript -->
+            <!-- Файлы будут добавлены через JavaScript -->
         </div>
     </main>
     <script src="js/dashboard.js"></script>

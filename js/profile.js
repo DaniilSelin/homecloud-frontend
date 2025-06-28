@@ -219,7 +219,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load user profile
     const loadUserProfile = async () => {
         try {
-            const res = await fetch('/api/v1/auth/me', {
+            const res = await fetch('http://localhost:3000/api/v1/auth/me', {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
