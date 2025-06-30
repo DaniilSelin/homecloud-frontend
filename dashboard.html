@@ -4,32 +4,47 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HomeCloud - Dashboard</title>
-    <link rel="stylesheet" href="css/style.css?v=2.3">
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/dashboard.css?v=3">
+    <link rel="stylesheet" href="css/modal.css?v=1">
+    <link rel="stylesheet" href="css/responsive.css?v=1">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons">
 </head>
 <body>
     <header class="main-header">
-        <div id="hamburger-menu" class="hamburger-menu">
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none" xmlns="http://www.w3.org/2000/svg">
-                <rect y="6" width="32" height="4" rx="2" fill="#2c3e50"/>
-                <rect y="14" width="32" height="4" rx="2" fill="#2c3e50"/>
-                <rect y="22" width="32" height="4" rx="2" fill="#2c3e50"/>
-            </svg>
+        <div class="header-content">
+            <div class="header-left">
+                <div id="hamburger-menu" class="hamburger-menu">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <rect y="5" width="24" height="2" rx="1" fill="currentColor"/>
+                        <rect y="11" width="24" height="2" rx="1" fill="currentColor"/>
+                        <rect y="17" width="24" height="2" rx="1" fill="currentColor"/>
+                    </svg>
+                </div>
+                <h1>HomeCloud</h1>
+            </div>
+            <div class="header-right">
+                <button id="root-folder-btn" class="btn btn-secondary">
+                    <span class="material-icons">home</span>
+                    Корневая папка
+                </button>
+            </div>
         </div>
-        <h1>HomeCloud</h1>
     </header>
     <main class="container">
-        <div class="dashboard-nav">
-            <a href="/dashboard.html" class="btn">Файлы</a>
-            <a href="/me" class="btn btn-secondary">Профиль</a>
-        </div>
-        <div class="header-content">
-            <h2 id="current-folder-title">Мои файлы</h2>
+        <div class="dashboard-header">
+            <div class="breadcrumb-container">
+                <h2 id="current-folder-title">Мои файлы</h2>
+                <div id="breadcrumb" class="breadcrumb"></div>
+            </div>
             <div class="header-actions">
                 <button id="create-file-btn" class="btn btn-primary">
-                    <span style="font-size: 20px;">+</span> Создать файл
+                    <span class="material-icons">add</span>
+                    Создать файл
                 </button>
                 <button id="upload-btn" class="btn btn-primary">
-                    ⬆️ Загрузить файлы
+                    <span class="material-icons">upload</span>
+                    Загрузить файлы
                 </button>
             </div>
         </div>

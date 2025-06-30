@@ -69,6 +69,9 @@ document.addEventListener('DOMContentLoaded', () => {
         return;
     }
 
+    // API Configuration
+    const API_BASE = '/api/v1';
+
     // DOM Elements
     const profileAvatar = document.getElementById('profile-avatar');
     const editProfileBtn = document.getElementById('edit-profile-btn');
@@ -219,7 +222,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Load user profile
     const loadUserProfile = async () => {
         try {
-            const res = await fetch('http://localhost:3000/api/v1/auth/me', {
+            const res = await fetch(`${API_BASE}/auth/me`, {
                 headers: { 'Authorization': `Bearer ${token}` }
             });
 
@@ -418,7 +421,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         try {
-            const res = await fetch(`/api/v1/users/${getUserIdFromToken()}`, {
+            const res = await fetch(`${API_BASE}/users/${getUserIdFromToken()}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -473,7 +476,7 @@ document.addEventListener('DOMContentLoaded', () => {
         }
         
         try {
-            const res = await fetch(`/api/v1/users/${getUserIdFromToken()}`, {
+            const res = await fetch(`${API_BASE}/users/${getUserIdFromToken()}`, {
                 method: 'PATCH',
                 headers: {
                     'Content-Type': 'application/json',
@@ -501,7 +504,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Resend verification email
     resendVerificationBtn.addEventListener('click', async () => {
         try {
-            const res = await fetch('/api/v1/auth/resend-verification', {
+            const res = await fetch(`${API_BASE}/auth/resend-verification`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',

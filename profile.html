@@ -1,105 +1,126 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Profile - HomeCloud</title>
-    <link rel="stylesheet" href="css/style.css?v=2.1">
+    <title>HomeCloud - Профиль</title>
+    <link rel="stylesheet" href="css/base.css">
+    <link rel="stylesheet" href="css/profile.css">
 </head>
 <body>
-    <main class="container">
-        <div class="profile-header">
-            <h2>My Profile</h2>
-            <a href="/dashboard.html" class="btn btn-secondary">← Back to Dashboard</a>
+    <header class="main-header">
+        <div class="header-left">
+            <button id="back-btn" class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <path d="M15 18L9 12L15 6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+                </svg>
+            </button>
+            <h1>HomeCloud</h1>
         </div>
-        
+        <div class="header-right">
+            <button id="menu-btn" class="icon-btn">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                    <circle cx="12" cy="12" r="2" fill="currentColor"/>
+                    <circle cx="12" cy="5" r="2" fill="currentColor"/>
+                    <circle cx="12" cy="19" r="2" fill="currentColor"/>
+                </svg>
+            </button>
+            <div id="user-menu" class="user-menu">
+                <a href="/dashboard.html" class="menu-item">Файлы</a>
+                <button id="logout-btn" class="menu-item">Выйти</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
         <div class="profile-container">
-            <div class="profile-info">
-                <div class="profile-avatar">
-                    <div id="profile-avatar" class="avatar-circle"></div>
-                </div>
-                
-                <div class="profile-details">
-                    <!-- Basic Info Section -->
-                    <div class="info-section">
-                        <h3>Basic Information</h3>
-                        <div class="info-item">
-                            <label>Username:</label>
-                            <span id="display-username">Loading...</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Email:</label>
-                            <span id="display-email">Loading...</span>
-                            <span id="email-verification-status" class="status-badge"></span>
-                        </div>
-                        <div class="info-item">
-                            <label>Role:</label>
-                            <span id="display-role">Loading...</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Member since:</label>
-                            <span id="display-created">Loading...</span>
-                        </div>
-                    </div>
-
-                    <!-- Account Status Section -->
-                    <div class="info-section">
-                        <h3>Account Status</h3>
-                        <div class="info-item">
-                            <label>Account Status:</label>
-                            <span id="display-status" class="status-badge">Loading...</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Email Verified:</label>
-                            <span id="display-email-verified" class="status-badge">Loading...</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Two-Factor Auth:</label>
-                            <span id="display-2fa" class="status-badge">Loading...</span>
-                        </div>
-                        <div class="info-item" id="last-login-item" style="display: none;">
-                            <label>Last Login:</label>
-                            <span id="display-last-login">Loading...</span>
-                        </div>
-                    </div>
-
-                    <!-- Storage Section -->
-                    <div class="info-section">
-                        <h3>Storage</h3>
-                        <div class="info-item">
-                            <label>Storage Used:</label>
-                            <span id="display-storage-used">Loading...</span>
-                        </div>
-                        <div class="info-item">
-                            <label>Storage Quota:</label>
-                            <span id="display-storage-quota">Loading...</span>
-                        </div>
-                        <div class="storage-progress-container">
-                            <div class="storage-progress-bar">
-                                <div id="storage-progress-fill" class="storage-progress-fill"></div>
-                            </div>
-                            <span id="storage-percentage" class="storage-percentage">0%</span>
-                        </div>
-                    </div>
-
-                    <!-- Security Section -->
-                    <div class="info-section" id="security-section" style="display: none;">
-                        <h3>Security</h3>
-                        <div class="info-item" id="failed-attempts-item" style="display: none;">
-                            <label>Failed Login Attempts:</label>
-                            <span id="display-failed-attempts">0</span>
-                        </div>
-                        <div class="info-item" id="locked-until-item" style="display: none;">
-                            <label>Account Locked Until:</label>
-                            <span id="display-locked-until" class="status-badge error">Not locked</span>
-                        </div>
-                    </div>
-                </div>
-                
+            <div class="profile-header">
+                <h2>Мой профиль</h2>
                 <div class="profile-actions">
-                    <button id="edit-profile-btn" class="btn">Edit Profile</button>
-                    <button id="change-password-btn" class="btn btn-secondary">Change Password</button>
-                    <button id="resend-verification-btn" class="btn btn-secondary" style="display: none;">Resend Verification Email</button>
+                    <button id="edit-profile-btn" class="btn btn-secondary">Редактировать</button>
+                    <button id="change-password-btn" class="btn btn-secondary">Сменить пароль</button>
+                    <button id="resend-verification-btn" class="btn btn-secondary" style="display: none;">Подтвердить email</button>
+                </div>
+            </div>
+
+            <div class="profile-content">
+                <div class="profile-info">
+                    <div class="profile-details">
+                        <!-- Basic Info Section -->
+                        <div class="info-section">
+                            <h3>Основная информация</h3>
+                            <div class="info-item">
+                                <label>Имя пользователя:</label>
+                                <span id="display-username">Загрузка...</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Email:</label>
+                                <span id="display-email">Загрузка...</span>
+                                <span id="email-verification-status" class="status-badge"></span>
+                            </div>
+                            <div class="info-item">
+                                <label>Роль:</label>
+                                <span id="display-role">Загрузка...</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Дата регистрации:</label>
+                                <span id="display-created">Загрузка...</span>
+                            </div>
+                        </div>
+
+                        <!-- Account Status Section -->
+                        <div class="info-section">
+                            <h3>Статус аккаунта</h3>
+                            <div class="info-item">
+                                <label>Статус:</label>
+                                <span id="display-status" class="status-badge">Загрузка...</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Email подтвержден:</label>
+                                <span id="display-email-verified" class="status-badge">Загрузка...</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Двухфакторная аутентификация:</label>
+                                <span id="display-2fa" class="status-badge">Загрузка...</span>
+                            </div>
+                            <div class="info-item" id="last-login-item" style="display: none;">
+                                <label>Последний вход:</label>
+                                <span id="display-last-login">Загрузка...</span>
+                            </div>
+                        </div>
+
+                        <!-- Storage Section -->
+                        <div class="info-section">
+                            <h3>Хранилище</h3>
+                            <div class="info-item">
+                                <label>Использовано:</label>
+                                <span id="display-storage-used">Загрузка...</span>
+                            </div>
+                            <div class="info-item">
+                                <label>Общий объем:</label>
+                                <span id="display-storage-quota">Загрузка...</span>
+                            </div>
+                            <div class="storage-progress-container">
+                                <div class="storage-progress-bar">
+                                    <div id="storage-progress-fill" class="storage-progress-fill"></div>
+                                </div>
+                                <span id="storage-percentage" class="storage-percentage">0%</span>
+                            </div>
+                        </div>
+
+                        <!-- Security Section -->
+                        <div class="info-section" id="security-section" style="display: none;">
+                            <h3>Безопасность</h3>
+                            <div class="info-item" id="failed-attempts-item" style="display: none;">
+                                <label>Неудачных попыток входа:</label>
+                                <span id="display-failed-attempts">0</span>
+                            </div>
+                            <div class="info-item" id="locked-until-item" style="display: none;">
+                                <label>Аккаунт заблокирован до:</label>
+                                <span id="display-locked-until" class="status-badge error">Не заблокирован</span>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -109,18 +130,22 @@
     <div id="edit-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Edit Profile</h3>
-                <span class="close">&times;</span>
+                <h3>Редактирование профиля</h3>
+                <button class="close icon-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
                 <form id="edit-profile-form">
                     <div class="input-group">
-                        <label for="edit-username">Username:</label>
+                        <label for="edit-username">Имя пользователя:</label>
                         <input type="text" id="edit-username" name="username" required>
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="btn">Save Changes</button>
-                        <button type="button" class="btn btn-secondary" id="cancel-edit">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Сохранить</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-edit">Отмена</button>
                     </div>
                 </form>
             </div>
@@ -131,26 +156,30 @@
     <div id="password-modal" class="modal">
         <div class="modal-content">
             <div class="modal-header">
-                <h3>Change Password</h3>
-                <span class="close">&times;</span>
+                <h3>Смена пароля</h3>
+                <button class="close icon-btn">
+                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none">
+                        <path d="M18 6L6 18M6 6L18 18" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>
+                    </svg>
+                </button>
             </div>
             <div class="modal-body">
                 <form id="change-password-form">
                     <div class="input-group">
-                        <label for="current-password">Current Password:</label>
+                        <label for="current-password">Текущий пароль:</label>
                         <input type="password" id="current-password" name="old_password" required>
                     </div>
                     <div class="input-group">
-                        <label for="new-password">New Password:</label>
+                        <label for="new-password">Новый пароль:</label>
                         <input type="password" id="new-password" name="new_password" required minlength="6">
                     </div>
                     <div class="input-group">
-                        <label for="confirm-password">Confirm New Password:</label>
+                        <label for="confirm-password">Подтверждение пароля:</label>
                         <input type="password" id="confirm-password" name="confirm_password" required minlength="6">
                     </div>
                     <div class="form-actions">
-                        <button type="submit" class="btn">Change Password</button>
-                        <button type="button" class="btn btn-secondary" id="cancel-password">Cancel</button>
+                        <button type="submit" class="btn btn-primary">Сменить пароль</button>
+                        <button type="button" class="btn btn-secondary" id="cancel-password">Отмена</button>
                     </div>
                 </form>
             </div>
@@ -158,6 +187,5 @@
     </div>
     
     <script src="js/profile.js"></script>
-    <script src="js/transitions.js"></script>
 </body>
 </html> 

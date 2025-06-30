@@ -1,0 +1,65 @@
+/* HomeCloud Auth Page Styles */
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    background: var(--bg, #f7faff);
+}
+
+.auth-card {
+    background: var(--card, #fff);
+    border-radius: 16px;
+    box-shadow: 0 4px 24px rgba(79,140,255,0.08);
+    padding: 2.2rem 2.5rem;
+    min-width: 320px;
+    max-width: 380px;
+    width: 100%;
+    text-align: center;
+}
+.auth-card h2 {
+    margin-bottom: 1.5rem;
+    color: var(--primary, #4f8cff);
+    font-weight: 600;
+    letter-spacing: 0.2px;
+}
+.input-group {
+    margin-bottom: 1.5rem;
+    text-align: left;
+}
+.input-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 500;
+    color: var(--muted, #64748b);
+}
+.input-group input {
+    width: 100%;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid var(--secondary-dark, #e2e8f0);
+    border-radius: 7px;
+    font-size: 1rem;
+    background: #fafdff;
+    color: var(--text, #222b45);
+    transition: border 0.2s, box-shadow 0.2s;
+    outline: none;
+}
+.input-group input:focus {
+    border: 1.5px solid var(--primary, #4f8cff);
+    box-shadow: 0 0 0 2px var(--accent, #a5b4fc);
+}
+.auth-switch {
+    margin-top: 1.5rem;
+    font-size: 0.97rem;
+    color: var(--muted, #64748b);
+}
+.auth-switch a {
+    color: var(--primary, #4f8cff);
+    text-decoration: none;
+    font-weight: 500;
+    transition: color 0.2s;
+}
+.auth-switch a:hover {
+    color: var(--primary-dark, #2563eb);
+    text-decoration: underline;
+} 

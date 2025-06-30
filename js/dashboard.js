@@ -11,9 +11,11 @@ document.addEventListener('DOMContentLoaded', () => {
     const uploadBtn = document.getElementById('upload-btn');
     const createFileBtn = document.getElementById('create-file-btn');
 
-    // Текущая папка для навигации
+    // Текущая папка и стек для навигации
     let currentFolderId = null;
     let currentFolderPath = '';
+    // Храним стек переходов, чтобы корректно возвращаться «назад»
+    const folderStack = []; // элементы вида { id, name }
 
     // Создаем модальное окно для создания файла
     const createFileModal = document.createElement('div');
@@ -21,21 +23,22 @@ document.addEventListener('DOMContentLoaded', () => {
     createFileModal.innerHTML = `
         <div class="modal-content">
             <div class="modal-header">
-                <h2>Создать новый файл</h2>
+                <h2>Создать</h2>
             </div>
             <div class="modal-body">
                 <div class="form-group">
-                    <label for="file-name">Имя файла:</label>
-                    <input type="text" id="file-name" placeholder="Введите имя файла">
+                    <label for="item-name">Имя:</label>
+                    <input type="text" id="item-name" placeholder="Введите имя файла или папки">
                 </div>
-                <div class="form-group">
+                <div class="form-group" id="file-content-group">
                     <label for="file-content">Содержимое файла:</label>
                     <textarea id="file-content" rows="6" style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; font-size: 14px;" placeholder="Введите содержимое файла"></textarea>
                 </div>
             </div>
             <div class="modal-footer">
                 <button class="btn btn-secondary" onclick="closeCreateFileModal()">Отмена</button>
-                <button class="btn btn-primary" onclick="createNewFile()">Создать</button>
+                <button class="btn btn-primary" onclick="createNewFolder()">Создать папку</button>
+                <button class="btn btn-primary" onclick="createNewFile()">Создать файл</button>
             </div>
         </div>
     `;
@@ -44,7 +47,7 @@ document.addEventListener('DOMContentLoaded', () => {
     // Функции для работы с модальным окном создания файла
     window.closeCreateFileModal = () => {
         createFileModal.classList.remove('show');
-        document.getElementById('file-name').value = '';
+        document.getElementById('item-name').value = '';
         document.getElementById('file-content').value = '';
     };
 
@@ -61,7 +64,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Функция создания нового файла
     window.createNewFile = async () => {
-        const fileName = document.getElementById('file-name').value.trim();
+        const fileName = document.getElementById('item-name').value.trim();
         const fileContent = document.getElementById('file-content').value;
         
         if (!fileName) {
@@ -70,25 +73,23 @@ document.addEventListener('DOMContentLoaded', () => {
         }
 
         try {
-            // Создаем Blob из содержимого
-            const blob = new Blob([fileContent], { type: 'text/plain' });
-            const file = new File([blob], fileName, { type: 'text/plain' });
-            
-            // Создаем FormData и добавляем файл
-            const formData = new FormData();
-            formData.append('file', file);
-            
-            // Если мы в папке, добавляем путь
-            if (currentFolderPath) {
-                formData.append('filePath', `${currentFolderPath}/${fileName}`);
-            }
-            
-            const response = await fetch('http://localhost:3000/api/v1/upload', {
+            // Готовим payload согласно API (POST /api/v1/files)
+            const payload = {
+                name: fileName,
+                content: btoa(unescape(encodeURIComponent(fileContent))), // base64
+                mime_type: 'text/plain',
+                size: fileContent.length,
+                is_folder: false,
+                parent_id: currentFolderId || null
+            };
+
+            const response = await fetch('http://localhost:3000/api/v1/files', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify(payload)
             });
 
             if (response.ok) {
@@ -104,54 +105,94 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     };
 
-    // Dropdown menu logic
-    let userDropdown = document.getElementById('user-dropdown');
-    if (!userDropdown) {
-        userDropdown = document.createElement('div');
-        userDropdown.id = 'user-dropdown';
-        userDropdown.className = 'user-dropdown';
-        userDropdown.innerHTML = `
-            <div class="user-dropdown-item" id="menu-me">Профиль</div>
-            <div class="user-dropdown-item logout" id="logout-btn">Выйти</div>
+    // Функция создания новой папки
+    window.createNewFolder = async () => {
+        const folderName = document.getElementById('item-name').value.trim();
+
+        if (!folderName) {
+            showNotification('Введите имя папки', 'error');
+            return;
+        }
+
+        try {
+            const payload = {
+                name: folderName,
+                is_folder: true,
+                parent_id: currentFolderId || null
+            };
+
+            const response = await fetch('http://localhost:3000/api/v1/files', {
+                method: 'POST',
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(payload)
+            });
+
+            if (response.ok) {
+                showNotification(`Папка ${folderName} создана`, 'success');
+                closeCreateFileModal();
+                fetchAndShowFiles();
+            } else {
+                const error = await response.text();
+                showNotification(`Ошибка создания папки: ${error}`, 'error');
+            }
+        } catch (error) {
+            showNotification(`Ошибка сети при создании папки: ${error.message}`, 'error');
+        }
+    };
+
+    // Создаем меню пользователя, если его еще нет
+    let userMenu = document.getElementById('user-menu');
+    if (!userMenu) {
+        userMenu = document.createElement('div');
+        userMenu.id = 'user-menu';
+        userMenu.className = 'user-menu';
+        userMenu.innerHTML = `
+            <a href="/dashboard.html" class="menu-item">
+                <span class="material-icons">folder</span>
+                Файлы
+            </a>
+            <a href="/profile.html" class="menu-item">
+                <span class="material-icons">person</span>
+                Профиль
+            </a>
+            <button class="menu-item logout" id="logout-btn">
+                <span class="material-icons">logout</span>
+                Выйти
+            </button>
         `;
-        document.body.appendChild(userDropdown);
-        console.log('Dropdown создан:', userDropdown);
+        document.body.appendChild(userMenu);
     }
 
-    function positionDropdown() {
-        const rect = hamburgerMenu.getBoundingClientRect();
-        userDropdown.style.top = (window.scrollY + rect.bottom + 8) + 'px';
-        userDropdown.style.left = (window.scrollX + rect.left) + 'px';
-        userDropdown.style.right = '';
-        userDropdown.style.zIndex = 2000;
-    }
-    function showDropdown() {
-        userDropdown.classList.add('show');
-        positionDropdown();
-    }
-    function hideDropdown() {
-        userDropdown.classList.remove('show');
-    }
-    hamburgerMenu.addEventListener('click', (e) => {
-        e.stopPropagation();
+    // Обработчики для меню пользователя
+    function toggleUserMenu(event) {
+        event.stopPropagation();
+        userMenu.classList.toggle('show');
         
-        const rect = hamburgerMenu.getBoundingClientRect();
-        userDropdown.style.top = `${rect.bottom + window.scrollY + 5}px`;
-        userDropdown.style.left = `${rect.left + window.scrollX}px`;
-        
-        userDropdown.classList.toggle('show');
-    });
-    document.addEventListener('click', (e) => {
-        if (!hamburgerMenu.contains(e.target) && !userDropdown.contains(e.target)) {
-            hideDropdown();
+        if (userMenu.classList.contains('show')) {
+            const rect = hamburgerMenu.getBoundingClientRect();
+            userMenu.style.top = `${rect.bottom + 5}px`;
+            userMenu.style.left = `${rect.left}px`;
         }
-    });
+    }
+
+    function hideUserMenu(event) {
+        if (!hamburgerMenu.contains(event.target) && !userMenu.contains(event.target)) {
+            userMenu.classList.remove('show');
+        }
+    }
+
+    // Добавляем обработчики событий
+    hamburgerMenu.addEventListener('click', toggleUserMenu);
+    document.addEventListener('click', hideUserMenu);
     
-    userDropdown.querySelector('#menu-me').onclick = () => { window.location.href = '/me'; };
-    userDropdown.querySelector('#logout-btn').onclick = () => {
+    // Обработчик выхода
+    document.getElementById('logout-btn').addEventListener('click', () => {
         localStorage.removeItem('token');
         window.location.href = '/login.html';
-    };
+    });
 
     // File actions (demo)
     function showDemoFiles() {
@@ -165,73 +206,94 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function renderFiles(files) {
         if (!files || files.length === 0) {
-            fileListContainer.innerHTML = `<div style="text-align: center; padding: 2rem; color: #666;">
-                <p>Нет файлов. Загрузите первый файл!</p>
-            </div>`;
+            fileListContainer.innerHTML = `
+                <div style="text-align: center; padding: 2rem; color: var(--muted);">
+                    <span class="material-icons" style="font-size: 3rem; margin-bottom: 1rem;">folder_open</span>
+                    <p>Папка пуста. Загрузите файлы или создайте новую папку!</p>
+                </div>`;
             return;
         }
 
         // Добавляем breadcrumb навигацию
-        let breadcrumbHtml = '';
+        const breadcrumb = document.getElementById('breadcrumb');
         const pathParts = currentFolderPath ? currentFolderPath.split('/') : [];
         
-        breadcrumbHtml = `
-            <div class="breadcrumb">
-                <div class="breadcrumb-buttons">
-                    ${currentFolderId || currentFolderPath ? `
-                        <button class="btn btn-secondary" onclick="navigateBack()">
-                            ⬅️ Назад
-                        </button>
-                    ` : ''}
-                    <button class="btn btn-secondary" onclick="navigateToFolder(null)">
-                        🏠 Корневая папка
-                    </button>
-                </div>
-                <div class="breadcrumb-path">
-                    ${pathParts.map((part, index) => {
-                        const path = pathParts.slice(0, index + 1).join('/');
-                        return `
-                            <span class="breadcrumb-separator">/</span>
-                            <span class="breadcrumb-item" onclick="navigateToPath('${path}')">${part}</span>
-                        `;
-                    }).join('')}
-                </div>
-            </div>
+        breadcrumb.innerHTML = `
+            ${currentFolderId || currentFolderPath ? `
+                <button class="btn btn-secondary" onclick="navigateBack()">
+                    <span class="material-icons">arrow_back</span>
+                    Назад
+                </button>
+            ` : ''}
+            ${pathParts.map((part, index) => {
+                const path = pathParts.slice(0, index + 1).join('/');
+                return `
+                    <span class="breadcrumb-separator">/</span>
+                    <span class="breadcrumb-item" onclick="navigateToPath('${path}')">${part}</span>
+                `;
+            }).join('')}
         `;
 
         const fileItems = files.map(file => `
-            <div class="file-item" onclick="${file.is_folder ? `navigateToFolder('${file.id}', '${file.name}')` : `showFileDetails('${file.id}')`}" style="cursor: pointer;">
+            <div class="file-item" onclick="${file.is_folder ? `navigateToFolder('${file.id}', '${file.name}')` : `showFileDetails('${file.id}')`}">
                 <div class="file-info">
-                    <span style="font-weight: 500;">${file.is_folder ? '📁 ' : getFileIcon(file.mime_type)}${file.name}</span>
-                    <span style="color: #666; font-size: 0.9rem;">${formatFileSize(file.size) || ''}</span>
-                    <span style="color: #999; font-size: 0.8rem;">${file.mime_type || (file.is_folder ? 'Папка' : 'Файл')}</span>
-                    <span style="color: #999; font-size: 0.8rem;">${formatDate(file.created_at)}</span>
+                    <span class="material-icons ${file.is_folder ? 'folder-icon' : ''}">${file.is_folder ? 'folder' : getFileIcon(file.mime_type)}</span>
+                    <div class="file-details">
+                        <div class="file-name">${file.name}</div>
+                        <div class="file-meta">
+                            ${!file.is_folder ? formatFileSize(file.size) : ''}
+                            ${file.created_at ? `• ${formatDate(file.created_at)}` : ''}
+                        </div>
+                    </div>
                 </div>
-                <div class="file-actions" onclick="event.stopPropagation();">
-                    ${file.is_folder ? 
-                        `<button class="btn btn-primary" onclick="navigateToFolder('${file.id}', '${file.name}')">📁 Открыть</button>` : 
-                        `<button class="btn btn-primary" onclick="downloadFile('${file.id}', '${file.name}')">⬇️ Скачать</button>`
-                    }
-                    <button class="btn btn-danger" onclick="deleteFile('${file.id}', '${file.name}', ${file.is_folder})">🗑️ Удалить</button>
+                <div class="file-actions">
+                    ${file.is_folder ? `
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); navigateToFolder('${file.id}', '${file.name}')">
+                            <span class="material-icons">folder_open</span>
+                            Открыть
+                        </button>
+                    ` : `
+                        <button class="btn btn-secondary" onclick="event.stopPropagation(); downloadFile('${file.id}', '${file.name}')">
+                            <span class="material-icons">download</span>
+                            Скачать
+                        </button>
+                    `}
+                    <button class="btn btn-danger" onclick="event.stopPropagation(); deleteFile('${file.id}')">
+                        <span class="material-icons">delete</span>
+                        Удалить
+                    </button>
                 </div>
             </div>
         `).join('');
-        
-        fileListContainer.innerHTML = breadcrumbHtml + fileItems;
+
+        fileListContainer.innerHTML = fileItems;
     }
     
     function getFileIcon(mimeType) {
-        if (!mimeType) return '📄';
-        if (mimeType.startsWith('image/')) return '🖼️';
-        if (mimeType.startsWith('video/')) return '🎥';
-        if (mimeType.startsWith('audio/')) return '🎵';
-        if (mimeType.includes('pdf')) return '📕';
-        if (mimeType.includes('word') || mimeType.includes('document')) return '📘';
-        if (mimeType.includes('excel') || mimeType.includes('spreadsheet')) return '📗';
-        if (mimeType.includes('powerpoint') || mimeType.includes('presentation')) return '📙';
-        if (mimeType.includes('zip') || mimeType.includes('rar') || mimeType.includes('archive')) return '📦';
-        if (mimeType.includes('text/')) return '📄';
-        return '📄';
+        if (!mimeType) return 'description';
+        
+        const iconMap = {
+            'text/': 'description',
+            'image/': 'image',
+            'video/': 'movie',
+            'audio/': 'audiotrack',
+            'application/pdf': 'picture_as_pdf',
+            'application/msword': 'description',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml': 'description',
+            'application/vnd.ms-excel': 'table_chart',
+            'application/vnd.openxmlformats-officedocument.spreadsheetml': 'table_chart',
+            'application/vnd.ms-powerpoint': 'slideshow',
+            'application/vnd.openxmlformats-officedocument.presentationml': 'slideshow',
+            'application/zip': 'folder_zip',
+            'application/x-rar-compressed': 'folder_zip',
+            'application/x-tar': 'folder_zip',
+            'application/x-7z-compressed': 'folder_zip'
+        };
+
+        for (const [type, icon] of Object.entries(iconMap)) {
+            if (mimeType.startsWith(type)) return icon;
+        }
+        return 'insert_drive_file';
     }
     
     function formatFileSize(bytes) {
@@ -270,20 +332,35 @@ document.addEventListener('DOMContentLoaded', () => {
     
     async function uploadFile(file) {
         try {
-            const formData = new FormData();
-            formData.append('file', file);
+            // Читаем файл и конвертируем в base64
+            const base64 = await new Promise((resolve, reject) => {
+                const reader = new FileReader();
+                reader.onload = () => {
+                    const result = reader.result;
+                    // reader.result = data:<mime>;base64,XXXX
+                    const encoded = result.split(',')[1];
+                    resolve(encoded);
+                };
+                reader.onerror = reject;
+                reader.readAsDataURL(file);
+            });
+
+            const payload = {
+                name: file.name,
+                content: base64,
+                mime_type: file.type || 'application/octet-stream',
+                size: file.size,
+                is_folder: false,
+                parent_id: currentFolderId || null
+            };
             
-            // Если мы в папке, добавляем путь
-            if (currentFolderPath) {
-                formData.append('filePath', `${currentFolderPath}/${file.name}`);
-            }
-            
-            const response = await fetch('http://localhost:3000/api/v1/upload', {
+            const response = await fetch('http://localhost:3000/api/v1/files', {
                 method: 'POST',
                 headers: {
-                    'Authorization': `Bearer ${token}`
+                    'Authorization': `Bearer ${token}`,
+                    'Content-Type': 'application/json'
                 },
-                body: formData
+                body: JSON.stringify(payload)
             });
             
             if (response.ok) {
@@ -300,16 +377,17 @@ document.addEventListener('DOMContentLoaded', () => {
     
     // Навигация по папкам
     window.navigateToFolder = async (folderId, folderName) => {
-        currentFolderId = folderId;
-        if (folderName) {
-            currentFolderPath = currentFolderPath ? `${currentFolderPath}/${folderName}` : folderName;
+        if (folderId) {
+            folderStack.push({ id: folderId, name: folderName });
         } else {
-            currentFolderPath = '';
+            // переход в корень – очищаем стек
+            folderStack.length = 0;
         }
-        
-        // Обновляем заголовок
+
+        currentFolderId = folderId;
+        currentFolderPath = folderStack.map(f => f.name).join('/');
+
         updateFolderTitle();
-        
         await fetchAndShowFiles();
     };
     
@@ -378,6 +456,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // Улучшаем функцию скачивания файла
     window.downloadFile = async (fileId, fileName) => {
+        console.log('Downloading file', fileId, fileName);
+
         try {
             showNotification('Начинается скачивание файла...', 'info');
             
@@ -505,6 +585,24 @@ document.addEventListener('DOMContentLoaded', () => {
             showDemoFiles();
         }
     }
+
+    // Кнопка «Назад»
+    window.navigateBack = async () => {
+        if (folderStack.length > 0) {
+            folderStack.pop();
+        }
+        const last = folderStack[folderStack.length - 1];
+        currentFolderId = last ? last.id : null;
+        currentFolderPath = folderStack.map(f => f.name).join('/');
+
+        updateFolderTitle();
+        await fetchAndShowFiles();
+    };
+
+    // Обновляем обработчик для корневой папки
+    document.getElementById('root-folder-btn').addEventListener('click', () => {
+        navigateToFolder(null);
+    });
 
     // Init
     fetchAndShowFiles();
